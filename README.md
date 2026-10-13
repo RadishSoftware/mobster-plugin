@@ -38,7 +38,7 @@ The skill needs the `mobster` MCP server in your agent. In Mobster for Mac, open
 /Applications/Mobster.app/Contents/MacOS/mobster-agent mcp
 ```
 
-It looks for `Mobster.app` in `MOBSTER_APP`, `/Applications`, `~/Applications`, then wherever Spotlight finds it. When the app's settings file `~/Library/Application Support/app.mobster.desktop/agent.env` exists and only you can read it, the script adds `--env-file` with that path, so Smart (`verify`) uses the model key the app uses. The key never goes into a config. Without the app, the script prints where to download it and exits 127.
+It looks for `Mobster.app` in `MOBSTER_APP`, `/Applications`, `~/Applications`, then wherever Spotlight finds it. `MOBSTER_APP_PATHS`, a list of `Mobster.app` paths separated by colons, replaces that search. When the app's settings file `~/Library/Application Support/app.mobster.desktop/agent.env` exists and only you can read it, the script adds `--env-file` with that path, so Smart (`verify`) uses the model key the app uses. The key never goes into a config. Without the app, the script prints where to download it and exits 127.
 
 `scripts/mobster-mcp --check` runs the server's own check instead: it starts the server, lists its tools and calls `status`.
 

@@ -27,6 +27,6 @@ When the app holds a model key, it adds `"--env-file", "~/Library/Application Su
 | `couldnt_run`, class `environment` | Read `reason`; `status` says what to fix |
 | A phone is `not_allowed` | The user kept that phone off limits. Ask them |
 | The phone is locked | Ask the user to unlock it. Mobster never enters a passcode |
-| `verify` isn't listed | Smart needs the user's own model key: add it in Mobster for Mac, Settings › AI account, then press **Add** again |
+| `verify` isn't listed | Smart needs the user's own model key: add it in Mobster for Mac, Settings › Models, then press **Add** again |
 
 Docs: https://docs.mobster.dev/mcp-server
