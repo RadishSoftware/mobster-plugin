@@ -5,7 +5,7 @@ Mobster runs on a Mac with Apple silicon, with Xcode and an iOS Simulator runtim
 ## Add the server to your agent
 
 1. Install Mobster for Mac from https://mobster.dev/download and move it to Applications.
-2. Open it, then Settings › For developers.
+2. Open it, then Settings › Connectors › **Use Mobster from…**.
 3. Press **Add** beside Claude Code, Claude Desktop, Cursor or Codex. Restart Claude Desktop and Cursor afterwards.
 
 **Add** writes this entry into the agent's MCP settings:
@@ -14,13 +14,13 @@ Mobster runs on a Mac with Apple silicon, with Xcode and an iOS Simulator runtim
 {"mcpServers": {"mobster": {"command": "/Applications/Mobster.app/Contents/MacOS/mobster-agent", "args": ["mcp"]}}}
 ```
 
-When the app holds a model key, it adds `"--env-file", "~/Library/Application Support/app.mobster.desktop/agent.env"` to `args`, so Smart (`verify`) uses the key the app uses. The key itself never goes into the config. For another agent that runs local MCP servers, Settings › For developers › Another agent shows the same command with Copy.
+When the app holds a model key, it adds `"--env-file", "~/Library/Application Support/app.mobster.desktop/agent.env"` to `args`, so Smart (`verify`) uses the key the app uses. The key itself never goes into the config. For another agent that runs local MCP servers, Settings › Connectors › Use Mobster from… › **Another agent** shows the same command with Copy.
 
 ## Common problems
 
 | Symptom | Fix |
 |---|---|
-| No mobster tools in the client | Open Mobster for Mac, Settings › For developers: the row says whether that agent is added. Press **Add**, then restart the client |
+| No mobster tools in the client | Open Mobster for Mac, Settings › Connectors › Use Mobster from…: the row says whether that agent is added. Press **Add**, then restart the client |
 | The server fails to start | Run `/Applications/Mobster.app/Contents/MacOS/mobster-agent mcp doctor`; it shows where it fails |
 | Mobster refuses to add itself | macOS runs the app from a temporary copy (opened from Downloads or the disk image). Move it to Applications, open it from there, then add it again |
 | `verify_start` stays `preparing` | The first run boots the simulator and builds WebDriverAgent (about a minute). Keep calling `wait` |

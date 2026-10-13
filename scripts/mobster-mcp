@@ -1,6 +1,6 @@
 #!/bin/sh
 # Starts Mobster's MCP server from Mobster for Mac, for the Claude Code plugin: the agent inside the app with `mcp`,
-# the same command the app's Settings › For developers › Add writes:
+# the same command the app's Settings › Connectors › Use Mobster from… › Add writes:
 #
 #   /Applications/Mobster.app/Contents/MacOS/mobster-agent mcp [--env-file <data folder>/agent.env] [args]
 #

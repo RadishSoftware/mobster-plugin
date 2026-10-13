@@ -1,7 +1,7 @@
 {
   "name": "mobster",
   "displayName": "Mobster",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Verify iOS UI changes on a simulator Mobster manages, and drive the iPhone you set up in Mobster for Mac. The ios-testing skill, Mobster's MCP server, /mobster:verify and /mobster:test-pr. Needs Mobster for Mac (mobster.dev/download).",
   "author": {
     "name": "Radish Retail, LLC",

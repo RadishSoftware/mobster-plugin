@@ -15,7 +15,7 @@ Mobster gives you an iOS simulator it manages, and the user's real iPhone if the
 First, see which path you have:
 
 - **The mobster MCP tools are available.** Use them. Call `status` once if you're unsure the server works.
-- **They aren't.** Tell the user to install Mobster for Mac from https://mobster.dev/download, then open Settings › For developers and press **Add** beside their agent. See [references/setup.md](references/setup.md).
+- **They aren't.** Tell the user to install Mobster for Mac from https://mobster.dev/download, then open Settings › Connectors and, under **Use Mobster from…**, press **Add** beside their agent. See [references/setup.md](references/setup.md).
 
 ## Safety rules
 

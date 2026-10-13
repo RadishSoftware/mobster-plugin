@@ -19,7 +19,7 @@ The skill on its own, for Claude Code, Codex, Cursor and other agents that read 
 npx skills add RadishSoftware/mobster-plugin
 ```
 
-The skill needs the `mobster` MCP server in your agent. In Mobster for Mac, open Settings › For developers and press **Add** beside Claude Code, Claude Desktop, Cursor or Codex.
+The skill needs the `mobster` MCP server in your agent. In Mobster for Mac, open Settings › Connectors and, under **Use Mobster from…**, press **Add** beside Claude Code, Claude Desktop, Cursor or Codex.
 
 ## What you get
 
@@ -32,7 +32,7 @@ The skill needs the `mobster` MCP server in your agent. In Mobster for Mac, open
 
 ## What it runs
 
-`scripts/mobster-mcp` starts the same command that Settings › For developers › **Add** writes:
+`scripts/mobster-mcp` starts the same command that Settings › Connectors › Use Mobster from… › **Add** writes:
 
 ```sh
 /Applications/Mobster.app/Contents/MacOS/mobster-agent mcp
