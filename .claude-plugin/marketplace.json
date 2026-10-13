@@ -1,0 +1,17 @@
+{
+  "name": "mobster",
+  "owner": {
+    "name": "Radish Retail, LLC",
+    "url": "https://mobster.dev"
+  },
+  "description": "Mobster for Claude Code: your agent checks iOS screens on a simulator and drives your iPhone through Mobster for Mac.",
+  "plugins": [
+    {
+      "name": "mobster",
+      "source": "./",
+      "description": "Mobster's MCP server from Mobster for Mac, the ios-testing skill, /mobster:verify and /mobster:test-pr. Verify iOS UI changes on a simulator Mobster manages, and drive the iPhone you set up in the app.",
+      "category": "development",
+      "tags": ["ios", "iphone", "simulator", "testing", "mcp"]
+    }
+  ]
+}
