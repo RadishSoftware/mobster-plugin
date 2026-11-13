@@ -1,20 +1,57 @@
 #!/bin/sh
-# Starts Mobster's MCP server from Mobster for Mac, for the Claude Code plugin and the Claude Desktop bundle: the agent
-# inside the app with `mcp`, the same command Settings › Connectors › Use Mobster from… › Add writes:
+# Starts Mobster's MCP server for the Claude Code plugin, from the first of these it finds:
 #
-#   /Applications/Mobster.app/Contents/MacOS/mobster-agent mcp [--env-file <data folder>/agent.env] [args]
+#   1. Mobster for Mac: /Applications/Mobster.app/Contents/MacOS/mobster-agent mcp [--env-file <data folder>/agent.env]
+#   2. the mobster command: mobster mcp (what `curl -fsSL https://mobster.dev/install.sh | sh` installs)
+#   3. uv's uvx: uvx --python 3.12 --from mobster-cli mobster mcp (the first start downloads mobster-cli from PyPI)
 #
 # It looks for the app in MOBSTER_APP (a path to Mobster.app), /Applications, ~/Applications, then wherever
 # Spotlight finds the bundle id app.mobster.desktop. MOBSTER_APP_PATHS (Mobster.app paths separated by colons)
-# replaces that list and skips Spotlight. The app's settings file is passed with --env-file only when it exists and
-# only you can read it (mode 600), so Smart (`verify`) uses the key the app uses; the key itself never appears in a
-# config. Stdout belongs to the MCP protocol, so every message goes to stderr.
+# replaces that list and skips Spotlight. It looks for mobster and uvx on PATH, then in MOBSTER_BIN_DIRS (folders
+# separated by colons; ~/.local/bin, /opt/homebrew/bin and /usr/local/bin by default), because an app opened from the
+# Dock starts this script with launchd's PATH. The app's settings file is passed with --env-file only when it exists
+# and only you can read it (mode 600), so Smart (`verify_start` with `smart`) uses the key the app uses; the key itself
+# never appears in a config. Stdout belongs to the MCP protocol, so every message goes to stderr.
+#
+# With none of the three (or only a temporary copy of the app), it serves only gate_note and gate, the tools the
+# plugin's hooks call, and both answer with nothing: a hook never errors for a missing Mobster.
 #
 #   mobster-mcp --check    run `mcp doctor` instead of the server
 set -u
 
 BUNDLE_ID=app.mobster.desktop
 ENV_FILE="$HOME/Library/Application Support/$BUNDLE_ID/agent.env"
+INSTALL_LINE="curl -fsSL https://mobster.dev/install.sh | sh"
+
+# A stdio MCP server for the hooks alone: a JSON-RPC message a line in, an answer a line out, none to a notification.
+serve_silent_hooks() {
+  note="$* Then run /mcp in Claude Code to reconnect."
+  while IFS= read -r line || [ -n "$line" ]; do
+    id=$(printf '%s' "$line" | sed -nE 's/.*"id"[[:space:]]*:[[:space:]]*([0-9]+|"[^"]*").*/\1/p')
+    [ -n "$id" ] || continue
+    method=$(printf '%s' "$line" | sed -nE 's/.*"method"[[:space:]]*:[[:space:]]*"([^"]*)".*/\1/p')
+    case "$method" in
+      initialize)
+        asked=$(printf '%s' "$line" | sed -nE 's/.*"protocolVersion"[[:space:]]*:[[:space:]]*"([^"]*)".*/\1/p')
+        result="{\"protocolVersion\":\"${asked:-2025-06-18}\",\"capabilities\":{\"tools\":{\"listChanged\":false}},"
+        result="$result\"serverInfo\":{\"name\":\"mobster\",\"version\":\"0\"},\"instructions\":\"$note\"}" ;;
+      tools/list)
+        result='{"tools":['
+        for tool in gate_note gate; do
+          result="$result{\"name\":\"$tool\",\"description\":\"The Mobster plugin's hooks call it. It does nothing"
+          result="$result until Mobster is installed.\",\"inputSchema\":{\"type\":\"object\"}},"
+        done
+        result="${result%,}]}" ;;
+      tools/call) result='{"content":[{"type":"text","text":""}],"isError":false}' ;;
+      ping) result='{}' ;;
+      *) printf '{"jsonrpc":"2.0","id":%s,"error":{"code":-32601,"message":"%s needs Mobster."}}\n' \
+           "$id" "$method"
+         continue ;;
+    esac
+    printf '{"jsonrpc":"2.0","id":%s,"result":%s}\n' "$id" "$result"
+  done
+  exit 0
+}
 
 agent_in() {
   [ -n "$1" ] && [ -x "$1/Contents/MacOS/mobster-agent" ] && echo "$1/Contents/MacOS/mobster-agent"
@@ -40,18 +77,41 @@ find_agent() {
   return 1
 }
 
+# The first executable named $1 on PATH, then in MOBSTER_BIN_DIRS.
+find_bin() {
+  found=$(command -v "$1" 2>/dev/null) && [ -x "$found" ] && { echo "$found"; return 0; }
+  old_ifs=$IFS
+  IFS=:
+  for dir in ${MOBSTER_BIN_DIRS-$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin}; do
+    if [ -n "$dir" ] && [ -x "$dir/$1" ]; then IFS=$old_ifs; echo "$dir/$1"; return 0; fi
+  done
+  IFS=$old_ifs
+  return 1
+}
+
 if ! agent=$(find_agent); then
-  echo "Mobster's MCP server runs from Mobster for Mac (looked in /Applications, ~/Applications and Spotlight)." \
-       "Download it from https://mobster.dev/download, move it to Applications and open it once. Then run /mcp" \
-       "in Claude Code, or restart Claude Desktop, to reconnect." >&2
-  exit 127
+  if cli=$(find_bin mobster); then
+    [ "${1:-}" = "--check" ] && exec "$cli" mcp doctor
+    exec "$cli" mcp "$@"
+  fi
+  if uvx=$(find_bin uvx); then
+    echo "Starting mobster-cli from PyPI with uvx. The first start downloads it. To skip that, run: $INSTALL_LINE" >&2
+    [ "${1:-}" = "--check" ] && exec "$uvx" --python 3.12 --from mobster-cli mobster mcp doctor
+    exec "$uvx" --python 3.12 --from mobster-cli mobster mcp "$@"
+  fi
+  echo "Mobster isn't installed (looked for Mobster for Mac, mobster and uvx). Install it in a terminal:" \
+       "$INSTALL_LINE. Then run /mcp in Claude Code to reconnect." >&2
+  [ "${1:-}" = "--check" ] && exit 127
+  serve_silent_hooks "Mobster isn't installed, so these tools do nothing. Install it in a terminal: $INSTALL_LINE."
 fi
 
 case "$agent" in
   /Volumes/*|*/AppTranslocation/*)
     echo "Mobster is running from a temporary copy ($agent). Move Mobster to your Applications folder, open it" \
-         "from there, then run /mcp in Claude Code, or restart Claude Desktop, to reconnect." >&2
-    exit 126 ;;
+         "from there, then run /mcp in Claude Code to reconnect." >&2
+    [ "${1:-}" = "--check" ] && exit 126
+    serve_silent_hooks "Mobster for Mac is running from a temporary copy, so these tools do nothing. Move it to" \
+                       "your Applications folder and open it from there." ;;
 esac
 
 if [ "${1:-}" = "--check" ]; then
